@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schooltrack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface2: #1a1a1a;
+  --surface3: #222222;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --muted: #888;
+  --hint: #555;
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.1);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,0.1);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.1);
+  --blue: #60a5fa;
+  --blue-bg: rgba(96,165,250,0.1);
+  --accent: #a78bfa;
+  --accent-bg: rgba(167,139,250,0.1);
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--display); }
+
+/* AUTH SCREEN */
+#auth-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; gap: 32px; padding: 40px 20px;
+}
+.auth-logo {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.auth-logo-mark {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: var(--accent-bg); border: 1px solid rgba(167,139,250,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--accent);
+}
+.auth-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+.auth-sub { font-size: 14px; color: var(--muted); font-family: var(--mono); text-align: center; max-width: 280px; line-height: 1.6; }
+.auth-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 32px; width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.auth-card-title { font-size: 16px; font-weight: 600; }
+.auth-card-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.google-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 13px 20px;
+  font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text);
+  cursor: pointer; transition: background 0.15s, border-color 0.15s; width: 100%;
+}
+.google-btn:hover { background: var(--surface3); border-color: rgba(255,255,255,0.2); }
+.google-btn svg { flex-shrink: 0; }
+.auth-note { font-size: 11px; color: var(--hint); font-family: var(--mono); text-align: center; line-height: 1.6; }
+
+/* APP SHELL */
+#app { display: none; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+/* TOP BAR */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  background: var(--surface); position: sticky; top: 0; z-index: 100;
+}
+.topbar-left { display: flex; flex-direction: column; gap: 1px; }
+.topbar-wordmark { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); }
+.topbar-greeting { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.sat-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 12px 6px 10px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.sat-chip:hover { border-color: var(--border2); }
+.sat-chip-inner { display: flex; flex-direction: column; gap: 1px; }
+.sat-chip-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--hint); }
+.sat-chip-scores { display: flex; align-items: baseline; gap: 5px; }
+.sat-chip-current { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+.sat-chip-target { font-family: var(--mono); font-size: 11px; color: var(--green); }
+
+/* NAV */
+.nav {
+  display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 20px; position: sticky; top: 57px; z-index: 99;
+}
+.nav-btn {
+  font-family: var(--display); font-size: 13px; font-weight: 500;
+  color: var(--hint); padding: 10px 12px; background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px; letter-spacing: 0.01em;
+}
+.nav-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+/* CONTENT */
+.content { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+.tab { display: none; flex-direction: column; gap: 16px; }
+.tab.active { display: flex; }
+
+/* LABELS */
+.label {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); margin-bottom: 8px;
+}
+
+/* CARDS */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+}
+.card-body { padding: 14px 16px; }
+.card-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+}
+.card-row:last-child { border-bottom: none; }
+
+/* WEEK STRIP */
+.week-strip { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+.day-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 9px 4px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; transition: border-color 0.1s;
+}
+.day-cell.today { border-color: var(--accent); background: var(--accent-bg); }
+.day-name { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hint); }
+.day-num { font-size: 17px; font-weight: 700; }
+.day-dots { display: flex; gap: 3px; min-height: 6px; flex-wrap: wrap; justify-content: center; }
+.day-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* ALERT CARD */
+.alert-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--amber); border-radius: 16px; padding: 14px 16px;
+}
+.alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 500;
+  padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-accent { background: var(--accent-bg); color: var(--accent); }
+.alert-class { font-size: 11px; color: var(--hint); font-family: var(--mono); }
+.alert-text { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; font-style: italic; }
+.alert-actions { display: flex; gap: 8px; }
+.btn-sm {
+  font-family: var(--display); font-size: 12px; font-weight: 500;
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted); cursor: pointer; transition: all 0.1s;
+}
+.btn-sm:hover { background: var(--surface3); color: var(--text); }
+.btn-sm.confirm { color: var(--green); border-color: rgba(74,222,128,0.3); }
+.btn-sm.confirm:hover { background: var(--green-bg); }
+
+/* ASSIGNMENT ROW */
+.class-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.assign-info { flex: 1; min-width: 0; }
+.assign-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.assign-meta { font-size: 11px; color: var(--hint); font-family: var(--mono); margin-top: 1px; }
+.due-chip {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 3px 9px; border-radius: 999px; flex-shrink: 0; white-space: nowrap;
+}
+.due-today { background: var(--red-bg); color: var(--red); }
+.due-soon { background: var(--amber-bg); color: var(--amber); }
+.due-later { background: var(--surface3); color: var(--hint); }
+
+/* CLASSES GRID */
+.classes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.class-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px; cursor: pointer; transition: border-color 0.15s;
+}
+.class-card:hover { border-color: var(--border2); }
+.class-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.class-dot-lg { width: 10px; height: 10px; border-radius: 50%; }
+.class-count { font-family: var(--mono); font-size: 10px; color: var(--hint); }
+.class-name { font-size: 14px; font-weight: 600; line-height: 1.3; margin-bottom: 3px; }
+.class-teacher { font-size: 11px; color: var(--hint); font-family: var(--mono); }
+.class-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.class-chip {
+  font-family: var(--mono); font-size: 10px;
+  padding: 3px 8px; border-radius: 999px; background: var(--surface2); color: var(--muted);
+}
+
+/* TEST CARDS */
+.test-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.test-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.test-class-row { display: flex; align-items: center; gap: 8px; }
+.test-class { font-size: 14px; font-weight: 600; }
+.countdown-chip {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--surface2); color: var(--muted);
+}
+.countdown-chip.urgent { background: var(--red-bg); color: var(--red); }
+.countdown-chip.soon { background: var(--amber-bg); color: var(--amber); }
+.test-body { padding: 12px 16px; }
+.test-topic { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.checklist { display: flex; flex-direction: column; gap: 7px; }
+.check-item { display: flex; align-items: center; gap: 9px; font-size: 13px; cursor: pointer; }
+.check-item input[type=checkbox] { accent-color: var(--green); width: 14px; height: 14px; flex-shrink: 0; }
+.check-item.done span { color: var(--hint); text-decoration: line-through; }
+
+/* SAT TAB */
+.countdown-hero { text-align: center; padding: 20px 0 12px; }
+.countdown-hero-num { font-family: var(--mono); font-size: 52px; font-weight: 500; line-height: 1; }
+.countdown-hero-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--hint); margin-top: 6px; }
+
+.progress-wrap { padding: 0 2px; }
+.progress-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--hint); margin-bottom: 5px; }
+.progress-track { height: 5px; background: var(--surface3); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 999px; background: var(--green); transition: width 0.8s ease; }
+
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.stat-block { background: var(--surface2); border-radius: 12px; padding: 12px 14px; }
+.stat-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--hint); margin-bottom: 4px; }
+.stat-val { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+.stat-val.green { color: var(--green); }
+.stat-sub { font-family: var(--mono); font-size: 10px; color: var(--hint); margin-top: 2px; }
+
+.practice-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+}
+.practice-row:last-child { border-bottom: none; }
+.practice-date { font-family: var(--mono); font-size: 11px; color: var(--hint); width: 75px; flex-shrink: 0; }
+.practice-score { font-family: var(--mono); font-size: 16px; font-weight: 500; width: 50px; flex-shrink: 0; }
+.practice-bar-wrap { flex: 1; }
+.practice-bar-track { height: 4px; background: var(--surface3); border-radius: 999px; overflow: hidden; }
+.practice-bar-fill { height: 100%; border-radius: 999px; background: var(--green); }
+
+.add-btn {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--display); font-size: 13px; font-weight: 500; color: var(--hint);
+  padding: 10px 14px; border: 1px dashed var(--border);
+  border-radius: 12px; background: none; cursor: pointer; width: 100%; transition: all 0.1s;
+}
+.add-btn:hover { background: var(--surface); color: var(--text); border-color: var(--border2); }
+
+/* LOADING */
+#loading { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 16px; }
+.spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-family: var(--mono); font-size: 12px; color: var(--hint); }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 200; align-items: flex-end; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 20px; width: 100%; max-width: 440px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal input, .modal select, .modal textarea {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; font-family: var(--display); font-size: 14px; color: var(--text);
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--accent); }
+.modal textarea { resize: none; height: 70px; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-primary {
+  flex: 1; font-family: var(--display); font-size: 14px; font-weight: 600;
+  padding: 11px; border-radius: 10px; border: none;
+  background: var(--accent); color: #0a0a0a; cursor: pointer; transition: opacity 0.1s;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-cancel {
+  font-family: var(--display); font-size: 14px; font-weight: 500;
+  padding: 11px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: none; color: var(--muted); cursor: pointer;
+}
+
+/* STREAM MODAL */
+.stream-item {
+  padding: 12px; background: var(--surface2); border-radius: 10px;
+  border: 1px solid var(--border); margin-bottom: 8px;
+}
+.stream-item-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.stream-item-body { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.stream-item-date { font-family: var(--mono); font-size: 10px; color: var(--hint); margin-top: 6px; }
+.stream-item.flagged { border-color: rgba(251,191,36,0.3); }
+
+/* USER AVATAR */
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--surface2); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--accent); cursor: pointer; overflow: hidden;
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* SIGN OUT */
+.signout-menu {
+  display: none; position: absolute; top: 56px; right: 16px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 6px; z-index: 200; min-width: 140px;
+}
+.signout-menu.open { display: block; }
+.signout-btn {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font-family: var(--display); font-size: 13px; color: var(--red);
+  padding: 8px 10px; border-radius: 8px; border: none; background: none; cursor: pointer;
+}
+.signout-btn:hover { background: var(--red-bg); }
+
+.empty-state { text-align: center; padding: 32px 20px; color: var(--hint); font-size: 13px; font-family: var(--mono); line-height: 1.6; }
+.sync-indicator { font-family: var(--mono); font-size: 10px; color: var(--hint); display: flex; align-items: center; gap: 6px; }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <div class="auth-logo-mark"><i class="ti ti-school"></i></div>
+    <div class="auth-title">Schooltrack</div>
+    <div class="auth-sub">Your classes, assignments, and SAT prep — all in one place.</div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-card-title">Sign in to get started</div>
+    <div class="auth-card-sub">Use your school Google account to connect your Classroom data automatically.</div>
+    <button class="google-btn" onclick="signIn()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-note">Sign in with your @melroseschools.com account.<br>Your data stays on your device.</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Connecting to Classroom...</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="position:relative;">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-wordmark">Schooltrack</span>
+      <span class="topbar-greeting" id="greeting">Hey, Adam</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="sat-chip" onclick="showTab('sat')">
+        <div class="sat-chip-inner">
+          <span class="sat-chip-label">SAT</span>
+          <div class="sat-chip-scores">
+            <span class="sat-chip-current" id="chip-current">1300</span>
+            <span class="sat-chip-target">→ 1380</span>
+          </div>
+        </div>
+        <i class="ti ti-chevron-right" style="font-size:13px;color:var(--hint)"></i>
+      </div>
+      <div class="user-avatar" id="avatar-btn" onclick="toggleSignout()">
+        <span id="avatar-initials">A</span>
+      </div>
+    </div>
+    <div class="signout-menu" id="signout-menu">
+      <button class="signout-btn" onclick="signOut()"><i class="ti ti-logout" style="font-size:15px"></i> Sign out</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('home')">Today</button>
+    <button class="nav-btn" onclick="showTab('classes')">Classes</button>
+    <button class="nav-btn" onclick="showTab('tests')">Tests</button>
+    <button class="nav-btn" onclick="showTab('sat')">SAT</button>
+  </div>
+
+  <div class="content">
+
+    <!-- TODAY TAB -->
+    <div class="tab active" id="tab-home">
+      <div>
+        <div class="label">This week</div>
+        <div class="week-strip" id="week-strip"></div>
+      </div>
+
+      <div id="alerts-section"></div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="label" style="margin:0">Due soon</div>
+          <div class="sync-indicator" id="sync-indicator" style="display:none">
+            <div class="sync-dot"></div>
+            <span>Live from Classroom</span>
+          </div>
+        </div>
+        <div class="card" id="assignments-list">
+          <div class="card-body"><div class="empty-state">Loading assignments...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLASSES TAB -->
+    <div class="tab" id="tab-classes">
+      <div>
+        <div class="label">Your classes</div>
+        <div class="classes-grid" id="classes-grid">
+          <div class="card" style="grid-column:1/-1"><div class="card-body"><div class="empty-state">Loading classes...</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TESTS TAB -->
+    <div class="tab" id="tab-tests">
+      <div>
+        <div class="label">Confirmed tests</div>
+        <div id="confirmed-tests"></div>
+      </div>
+      <div id="flagged-section" style="display:none">
+        <div class="label">AI flagged — pending</div>
+        <div id="flagged-tests"></div>
+      </div>
+      <button class="add-btn" onclick="openAddTest()"><i class="ti ti-plus"></i> Add test manually</button>
+    </div>
+
+    <!-- SAT TAB -->
+    <div class="tab" id="tab-sat">
+      <div class="card">
+        <div class="card-body">
+          <div class="countdown-hero">
+            <div class="countdown-hero-num" id="sat-days-num">12</div>
+            <div class="countdown-hero-label">days until SAT · June 6, 2026</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-labels">
+              <span id="prog-current">1300 current</span>
+              <span>1380 goal</span>
+              <span>1600 max</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill" style="width:81.25%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-block">
+          <div class="stat-label">Current</div>
+          <div class="stat-val" id="stat-current">1300</div>
+          <div class="stat-sub">March 2026</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Target</div>
+          <div class="stat-val green">1380</div>
+          <div class="stat-sub">June 6</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Gap</div>
+          <div class="stat-val" id="stat-gap">80</div>
+          <div class="stat-sub">pts to close</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">Practice history</div>
+        <div class="card" id="practice-log"></div>
+      </div>
+
+      <div>
+        <div class="label">Upcoming dates</div>
+        <div class="card">
+          <div class="card-row">
+            <div class="class-dot" style="background:#4ade80"></div>
+            <div class="assign-info">
+              <div class="assign-name">SAT — June sitting</div>
+              <div class="assign-meta">Jun 6, 2026</div>
+            </div>
+            <span class="due-chip due-today" id="june-chip">12 days</span>
+          </div>
+          <div class="card-row">
+            <div class="class-dot" style="background:#60a5fa"></div>
+            <div class="assign-info">
+              <div class="assign-name">SAT — August sitting</div>
+              <div class="assign-meta">Aug 2026</div>
+            </div>
+            <span class="due-chip due-later">~70 days</span>
+          </div>
+          <div class="card-row">
+            <div class="class-dot" style="background:#a78bfa"></div>
+            <div class="assign-info">
+              <div class="assign-name">SAT — October sitting</div>
+              <div class="assign-meta">Oct 2026</div>
+            </div>
+            <span class="due-chip due-later">~135 days</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="add-btn" onclick="openAddPractice()"><i class="ti ti-plus"></i> Log practice test</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD TEST MODAL -->
+<div class="modal-overlay" id="add-test-modal">
+  <div class="modal">
+    <div class="modal-title">Add test</div>
+    <select id="test-class-select"><option value="">Select class...</option></select>
+    <input type="text" id="test-topic" placeholder="Topic (e.g. Unit 8 — Ecology)">
+    <input type="date" id="test-date">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('add-test-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveTest()">Add test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PRACTICE MODAL -->
+<div class="modal-overlay" id="add-practice-modal">
+  <div class="modal">
+    <div class="modal-title">Log practice test</div>
+    <input type="month" id="practice-month">
+    <input type="number" id="practice-score" placeholder="Score (400–1600)" min="400" max="1600">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('add-practice-modal')">Cancel</button>
+      <button class="btn-primary" onclick="savePractice()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLASS DETAIL MODAL -->
+<div class="modal-overlay" id="class-detail-modal">
+  <div class="modal" style="max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" id="detail-class-name">Class</div>
+      <button class="btn-cancel" onclick="closeModal('class-detail-modal')" style="padding:6px 10px;">✕</button>
+    </div>
+    <div id="detail-stream"></div>
+  </div>
+</div>
+
+<script>
+const CLIENT_ID = '642440045208-f837fftqu64fb8iuk4mm6g3922br7osu.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly https://www.googleapis.com/auth/classroom.announcements.readonly https://www.googleapis.com/auth/userinfo.profile';
+
+// CLASS COLOR MAP
+const CLASS_COLORS = {
+  'AP English Language': '#a78bfa',
+  'Pre-Calculus': '#f97316',
+  'Modern Global Studies': '#fbbf24',
+  'AP Economics': '#60a5fa',
+  'French 4H': '#f472b6',
+  'AP Biology': '#4ade80',
+};
+function getColor(name) {
+  for (const [k,v] of Object.entries(CLASS_COLORS)) {
+    if (name && name.toLowerCase().includes(k.toLowerCase().split(' ')[1] || k.toLowerCase().split(' ')[0])) return v;
+  }
+  const palette = ['#a78bfa','#4ade80','#60a5fa','#fbbf24','#f472b6','#f97316','#34d399'];
+  let h = 0; for (let i=0;i<(name||'').length;i++) h = (h*31+name.charCodeAt(i))%palette.length;
+  return palette[h];
+}
+
+// STATE
+let state = {
+  courses: [],
+  assignments: [],
+  announcements: [],
+  tests: JSON.parse(localStorage.getItem('st_tests') || '[]'),
+  practices: JSON.parse(localStorage.getItem('st_practices') || '[{"month":"Mar 2026","score":1300}]'),
+  flags: JSON.parse(localStorage.getItem('st_flags') || '[]'),
+  dismissed: JSON.parse(localStorage.getItem('st_dismissed') || '[]'),
+  satCurrent: parseInt(localStorage.getItem('st_sat_current') || '1300'),
+  tokenClient: null,
+  accessToken: null,
+  userName: 'Adam',
+};
+
+// TEST KEYWORDS
+const TEST_KEYWORDS = ['test','quiz','exam','assessment','study guide','review guide','unit test','midterm','final'];
+function detectTestFlag(text) {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return TEST_KEYWORDS.some(k => lower.includes(k));
+}
+
+// GOOGLE SIGN IN
+function signIn() {
+  if (!window.google) { alert('Google sign-in not loaded. Check your connection.'); return; }
+  state.tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { console.error(resp); return; }
+      state.accessToken = resp.access_token;
+      showLoading('Fetching your classes...');
+      await loadUserInfo();
+      await loadClassroom();
+    },
+  });
+  state.tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+async function loadUserInfo() {
+  try {
+    const r = await gFetch('https://www.googleapis.com/oauth2/v2/userinfo');
+    if (r.name) {
+      const first = r.name.split(' ')[0];
+      state.userName = first;
+      document.getElementById('greeting').textContent = `Hey, ${first}`;
+      document.getElementById('avatar-initials').textContent = first[0].toUpperCase();
+    }
+  } catch(e) {}
+}
+
+async function gFetch(url) {
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${state.accessToken}` }});
+  return r.json();
+}
+
+async function loadClassroom() {
+  try {
+    setLoadingText('Loading your classes...');
+    const coursesResp = await gFetch('https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE&pageSize=20');
+    state.courses = (coursesResp.courses || []);
+
+    setLoadingText('Fetching assignments...');
+    const allWork = [];
+    const allAnnouncements = [];
+    for (const course of state.courses) {
+      try {
+        const work = await gFetch(`https://classroom.googleapis.com/v1/courses/${course.id}/courseWork?orderBy=dueDate%20desc&pageSize=20`);
+        (work.courseWork || []).forEach(w => { w._courseName = course.name; w._color = getColor(course.name); allWork.push(w); });
+      } catch(e) {}
+      try {
+        const ann = await gFetch(`https://classroom.googleapis.com/v1/courses/${course.id}/announcements?orderBy=updateTime%20desc&pageSize=10`);
+        (ann.announcements || []).forEach(a => { a._courseName = course.name; a._color = getColor(course.name); allAnnouncements.push(a); });
+      } catch(e) {}
+    }
+    state.assignments = allWork;
+    state.announcements = allAnnouncements;
+
+    // AUTO-FLAG from announcements
+    allAnnouncements.forEach(a => {
+      const text = a.text || '';
+      const id = a.id;
+      if (detectTestFlag(text) && !state.dismissed.includes(id) && !state.flags.find(f=>f.id===id)) {
+        state.flags.push({ id, text: text.slice(0,200), courseName: a._courseName, color: a._color, ts: a.updateTime });
+        saveFlags();
+      }
+    });
+
+    showApp();
+  } catch(e) {
+    console.error(e);
+    setLoadingText('Error loading Classroom data. Try again.');
+  }
+}
+
+function showLoading(msg) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  setLoadingText(msg);
+}
+function setLoadingText(t) { document.getElementById('loading-text').textContent = t; }
+
+function showApp() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  renderAll();
+}
+
+function renderAll() {
+  renderWeek();
+  renderAlerts();
+  renderAssignments();
+  renderClasses();
+  renderTests();
+  renderSAT();
+  renderPracticeLog();
+  updateSATCountdown();
+}
+
+// WEEK STRIP
+function renderWeek() {
+  const strip = document.getElementById('week-strip');
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay()+6)%7));
+  strip.innerHTML = '';
+  const days = ['Mon','Tue','Wed','Thu','Fri'];
+  for (let i=0;i<5;i++) {
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const isToday = d.toDateString()===today.toDateString();
+    const dueDots = state.assignments.filter(a => {
+      if (!a.dueDate) return false;
+      const dd = new Date(a.dueDate.year, a.dueDate.month-1, a.dueDate.day);
+      return dd.toDateString()===d.toDateString();
+    });
+    const dots = [...new Set(dueDots.map(x=>x._color))].slice(0,4);
+    strip.innerHTML += `<div class="day-cell${isToday?' today':''}">
+      <span class="day-name">${days[i]}</span>
+      <span class="day-num">${d.getDate()}</span>
+      <div class="day-dots">${dots.map(c=>`<div class="day-dot" style="background:${c}"></div>`).join('')}</div>
+    </div>`;
+  }
+}
+
+// ALERTS
+function renderAlerts() {
+  const sec = document.getElementById('alerts-section');
+  const active = state.flags.filter(f => !state.dismissed.includes(f.id));
+  if (!active.length) { sec.innerHTML=''; return; }
+  sec.innerHTML = `<div class="label">AI flagged</div>` + active.slice(0,3).map(f => `
+    <div class="alert-card" id="alert-${f.id}">
+      <div class="alert-header">
+        <span class="badge badge-amber">Possible test</span>
+        <span class="alert-class">${f.courseName}</span>
+      </div>
+      <div class="alert-text">"${f.text.slice(0,160)}${f.text.length>160?'...':''}"</div>
+      <div class="alert-actions">
+        <button class="btn-sm confirm" onclick="confirmFlag('${f.id}')"><i class="ti ti-check"></i> Confirm test</button>
+        <button class="btn-sm" onclick="dismissFlag('${f.id}')">Dismiss</button>
+      </div>
+    </div>`).join('');
+}
+
+function confirmFlag(id) {
+  const flag = state.flags.find(f=>f.id===id);
+  if (flag) {
+    state.tests.push({ id: Date.now()+'', courseName: flag.courseName, color: flag.color, topic: 'Flagged by AI — confirm topic', date: '', checklist: [] });
+    saveTests();
+  }
+  dismissFlag(id);
+  renderTests();
+}
+function dismissFlag(id) {
+  state.dismissed.push(id);
+  localStorage.setItem('st_dismissed', JSON.stringify(state.dismissed));
+  renderAlerts();
+}
+
+// ASSIGNMENTS
+function renderAssignments() {
+  const list = document.getElementById('assignments-list');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = state.assignments
+    .filter(a => a.dueDate)
+    .map(a => ({ ...a, _due: new Date(a.dueDate.year, a.dueDate.month-1, a.dueDate.day) }))
+    .filter(a => a._due >= today)
+    .sort((a,b) => a._due - b._due)
+    .slice(0, 8);
+
+  if (!upcoming.length) {
+    list.innerHTML = '<div class="card-body"><div class="empty-state">No upcoming assignments pulled from Classroom yet.</div></div>';
+    return;
+  }
+  document.getElementById('sync-indicator').style.display = 'flex';
+  const diffDays = (d) => Math.ceil((d-today)/(1000*60*60*24));
+  list.innerHTML = upcoming.map(a => {
+    const diff = diffDays(a._due);
+    const label = diff===0?'Today':diff===1?'Tomorrow':a._due.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const chipClass = diff===0?'due-today':diff<=3?'due-soon':'due-later';
+    return `<div class="card-row">
+      <div class="class-dot" style="background:${a._color}"></div>
+      <div class="assign-info">
+        <div class="assign-name">${a.title}</div>
+        <div class="assign-meta">${a._courseName}</div>
+      </div>
+      <span class="due-chip ${chipClass}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+// CLASSES
+function renderClasses() {
+  const grid = document.getElementById('classes-grid');
+  if (!state.courses.length) {
+    grid.innerHTML = '<div class="card" style="grid-column:1/-1"><div class="card-body"><div class="empty-state">No classes found in Classroom.</div></div></div>';
+    return;
+  }
+  grid.innerHTML = state.courses.map(c => {
+    const color = getColor(c.name);
+    const pending = state.assignments.filter(a => a.courseId===c.id && a.dueDate).length;
+    return `<div class="class-card" onclick="showClassDetail('${c.id}','${c.name.replace(/'/g,"\\'")}')">
+      <div class="class-card-top">
+        <div class="class-dot-lg" style="background:${color}"></div>
+        <span class="class-count">${pending} assignments</span>
+      </div>
+      <div class="class-name">${c.name}</div>
+      <div class="class-teacher">${(c.teacherFolder||{}).title||''}</div>
+      <div class="class-chips"><span class="class-chip">Tap to view stream</span></div>
+    </div>`;
+  }).join('');
+}
+
+function showClassDetail(courseId, courseName) {
+  document.getElementById('detail-class-name').textContent = courseName;
+  const anns = state.announcements.filter(a => a.courseId===courseId);
+  const stream = document.getElementById('detail-stream');
+  if (!anns.length) { stream.innerHTML='<div class="empty-state">No announcements found.</div>'; }
+  else stream.innerHTML = anns.map(a => {
+    const flagged = detectTestFlag(a.text);
+    return `<div class="stream-item${flagged?' flagged':''}">
+      ${flagged?'<span class="badge badge-amber" style="margin-bottom:6px;display:inline-block">Possible test</span>':''}
+      <div class="stream-item-body">${(a.text||'').slice(0,300)}${(a.text||'').length>300?'...':''}</div>
+      <div class="stream-item-date">${new Date(a.updateTime).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('class-detail-modal').classList.add('open');
+}
+
+// TESTS
+function renderTests() {
+  const confirmed = document.getElementById('confirmed-tests');
+  const flaggedSec = document.getElementById('flagged-section');
+  const flaggedDiv = document.getElementById('flagged-tests');
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  if (!state.tests.length) {
+    confirmed.innerHTML = '<div class="card"><div class="card-body"><div class="empty-state">No tests added yet.<br>Add one manually or confirm an AI flag.</div></div></div>';
+  } else {
+    confirmed.innerHTML = state.tests.map((t,i) => {
+      const daysLeft = t.date ? Math.ceil((new Date(t.date)-today)/(1000*60*60*24)) : null;
+      const chipClass = daysLeft===null?'':'countdown-chip '+(daysLeft<=3?'urgent':daysLeft<=7?'soon':'');
+      const chipText = daysLeft===null?'No date set':daysLeft===0?'Today!':daysLeft<0?`${Math.abs(daysLeft)}d ago`:`${daysLeft} days`;
+      return `<div class="test-card" style="margin-bottom:10px">
+        <div class="test-header">
+          <div class="test-class-row">
+            <div class="class-dot" style="background:${t.color||'#888'}"></div>
+            <span class="test-class">${t.courseName}</span>
+          </div>
+          <span class="${chipClass||'countdown-chip'}">${chipText}</span>
+        </div>
+        <div class="test-body">
+          <div class="test-topic">${t.topic}</div>
+          <div class="checklist" id="checklist-${i}">
+            ${(t.checklist||[]).map((item,j)=>`
+              <label class="check-item${item.done?' done':''}">
+                <input type="checkbox" ${item.done?'checked':''} onchange="toggleCheck(${i},${j},this.checked)">
+                <span>${item.text}</span>
+              </label>`).join('')}
+          </div>
+          <button class="add-btn" style="margin-top:8px;padding:6px 10px;font-size:12px" onclick="addChecklistItem(${i})"><i class="ti ti-plus"></i> Add checklist item</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const activeFlags = state.flags.filter(f=>!state.dismissed.includes(f.id));
+  if (activeFlags.length) {
+    flaggedSec.style.display='block';
+    flaggedDiv.innerHTML = activeFlags.map(f=>`
+      <div class="alert-card" style="margin-bottom:10px">
+        <div class="alert-header">
+          <span class="badge badge-amber">Possible test</span>
+          <span class="alert-class">${f.courseName}</span>
+        </div>
+        <div class="alert-text">"${f.text.slice(0,160)}"</div>
+        <div class="alert-actions">
+          <button class="btn-sm confirm" onclick="confirmFlag('${f.id}')"><i class="ti ti-check"></i> Confirm</button>
+          <button class="btn-sm" onclick="dismissFlag('${f.id}')">Dismiss</button>
+        </div>
+      </div>`).join('');
+  } else { flaggedSec.style.display='none'; }
+
+  // Populate class select
+  const sel = document.getElementById('test-class-select');
+  sel.innerHTML = '<option value="">Select class...</option>';
+  state.courses.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = c.name; sel.appendChild(opt);
+  });
+  // Also add manual class options if no courses loaded
+  if (!state.courses.length) {
+    ['AP English Language','Pre-Calculus','Modern Global Studies','AP Economics','French 4H','AP Biology'].forEach(n=>{
+      const opt=document.createElement('option'); opt.value=n; opt.textContent=n; sel.appendChild(opt);
+    });
+  }
+}
+
+function toggleCheck(testIdx, itemIdx, done) {
+  state.tests[testIdx].checklist[itemIdx].done = done;
+  saveTests();
+  const label = document.querySelector(`#checklist-${testIdx} .check-item:nth-child(${itemIdx+1})`);
+  if (label) label.classList.toggle('done', done);
+}
+
+function addChecklistItem(testIdx) {
+  const text = prompt('Checklist item:');
+  if (!text) return;
+  state.tests[testIdx].checklist.push({ text, done: false });
+  saveTests(); renderTests();
+}
+
+function openAddTest() {
+  document.getElementById('add-test-modal').classList.add('open');
+}
+function saveTest() {
+  const sel = document.getElementById('test-class-select');
+  const courseName = sel.options[sel.selectedIndex]?.text || sel.value;
+  const topic = document.getElementById('test-topic').value.trim();
+  const date = document.getElementById('test-date').value;
+  if (!courseName || courseName==='Select class...') return alert('Select a class.');
+  const color = getColor(courseName);
+  state.tests.push({ id: Date.now()+'', courseName, color, topic: topic||'Upcoming test', date, checklist: [] });
+  saveTests(); renderTests();
+  closeModal('add-test-modal');
+  document.getElementById('test-topic').value='';
+  document.getElementById('test-date').value='';
+}
+
+// SAT
+function renderSAT() {
+  const current = state.satCurrent;
+  const target = 1380;
+  const pct = ((current-400)/(1600-400)*100).toFixed(1);
+  document.getElementById('stat-current').textContent = current;
+  document.getElementById('stat-gap').textContent = Math.max(0,target-current);
+  document.getElementById('chip-current').textContent = current;
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('prog-current').textContent = current+' current';
+}
+
+function renderPracticeLog() {
+  const log = document.getElementById('practice-log');
+  if (!state.practices.length) { log.innerHTML='<div class="card-body"><div class="empty-state">No practice tests logged.</div></div>'; return; }
+  log.innerHTML = state.practices.map(p=>`
+    <div class="practice-row">
+      <span class="practice-date">${p.month}</span>
+      <span class="practice-score">${p.score}</span>
+      <div class="practice-bar-wrap">
+        <div class="practice-bar-track">
+          <div class="practice-bar-fill" style="width:${((p.score-400)/12).toFixed(1)}%"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updateSATCountdown() {
+  const sat = new Date('2026-06-06');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.ceil((sat-today)/(1000*60*60*24));
+  const el = document.getElementById('sat-days-num');
+  if (el) el.textContent = diff > 0 ? diff : 'Done!';
+  const chip = document.getElementById('june-chip');
+  if (chip) chip.textContent = diff > 0 ? diff+' days' : 'Past';
+}
+
+function openAddPractice() { document.getElementById('add-practice-modal').classList.add('open'); }
+function savePractice() {
+  const month = document.getElementById('practice-month').value;
+  const score = parseInt(document.getElementById('practice-score').value);
+  if (!month || !score || score<400||score>1600) return alert('Enter a valid month and score (400-1600).');
+  const d = new Date(month+'-01');
+  const label = d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  state.practices.push({ month: label, score });
+  state.practices.sort((a,b)=>new Date('01 '+a.month)-new Date('01 '+b.month));
+  state.satCurrent = Math.max(...state.practices.map(p=>p.score));
+  localStorage.setItem('st_sat_current', state.satCurrent);
+  localStorage.setItem('st_practices', JSON.stringify(state.practices));
+  renderSAT(); renderPracticeLog();
+  closeModal('add-practice-modal');
+}
+
+// UTILS
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const tabs=['home','classes','tests','sat'];
+  document.querySelectorAll('.nav-btn')[tabs.indexOf(name)].classList.add('active');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function saveTests() { localStorage.setItem('st_tests', JSON.stringify(state.tests)); }
+function saveFlags() { localStorage.setItem('st_flags', JSON.stringify(state.flags)); }
+
+function toggleSignout() {
+  document.getElementById('signout-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#avatar-btn') && !e.target.closest('#signout-menu'))
+    document.getElementById('signout-menu').classList.remove('open');
+});
+
+function signOut() {
+  if (state.accessToken) google.accounts.oauth2.revoke(state.accessToken, ()=>{});
+  state.accessToken = null; state.courses = []; state.assignments = []; state.announcements = [];
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+// Init SAT countdown on load
+updateSATCountdown();
+</script>
+</body>
+</html>
